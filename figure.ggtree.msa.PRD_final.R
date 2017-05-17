@@ -154,4 +154,6 @@ for( colMap in list(aaColorNA, aaColorWhite)) {
 }
 dev.off()
 
+#save.image("figure.ggtree.msa.PRD_final.RData")
+#load("figure.ggtree.msa.PRD_final.RData")
 
