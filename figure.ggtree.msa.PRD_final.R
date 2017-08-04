@@ -25,12 +25,6 @@ write.table(rownames(bg), paste0(tableDir,"/sample_names.CODING_MOTIFS_ICS728.16
 newCodes = read.delim("../New codes.txt", sep="\t", header=TRUE, stringsAsFactors=F)
 row.names(newCodes) = newCodes$PRD.tree_final.nex
 
-# sanity check
-cat("msa_names: ",length(msa_names))
-cat("newCodes : ", dim(newCodes))
-cat("msa_names mapped: ", sum(msa_names %in% newCodes$PRD.tree_final.nex))
-cat("CodingMotifs names mapped: ", sum(rownames(bg) %in% newCodes$CODING_MOTIFS_ICS728.161121.groups.xlsx))
-
 # ================================================================= 
 # load Reshmi's NJ tree (PRD Final.nex)
 # had to convert from .nex to .fa with Paup 
@@ -39,6 +33,12 @@ cat("CodingMotifs names mapped: ", sum(rownames(bg) %in% newCodes$CODING_MOTIFS_
 msa = readAAStringSet("../converted/PRD alignnment_ final.paup.fa",format="fasta", use.names=T)
 msa_names = names(msa)
 write.table(msa_names, paste0(tableDir,"/sample_names.PRD alignnment_ final.paup.fa.txt"))
+
+# sanity check
+cat("msa_names: ",length(msa_names))
+cat("newCodes : ", dim(newCodes))
+cat("msa_names mapped: ", sum(msa_names %in% newCodes$PRD.tree_final.nex))
+cat("CodingMotifs names mapped: ", sum(rownames(bg) %in% newCodes$CODING_MOTIFS_ICS728.161121.groups.xlsx))
 
 # ---------------------------------------------------------------------------------------
 # ggtree.getCols (AA color pallette)
@@ -156,21 +156,28 @@ cat("newCodes node names: ", sum(nj_tip_names %in% newCodes$PRD.tree_final.nex),
 
 groupColors = c("GROUP 1"="red","GROUP 2"="blue","GROUP 3"="green",
                 "GROUP1"="red", "GROUP2"="blue", "GROUP3=NON_PRO_BLOCK"="green")
+fixCol=c("red"="blue","blue"="red", "green"="green")
+
 cat("groups      : ", paste(levels(as.factor(newCodes$PRD.GROUP)),collapse=","))
 cat("group colors: ", paste(groupColors[levels(as.factor(newCodes$PRD.GROUP))],collapse=","))
 
 
 # --- build ggtree graphics
 ggNJ = ggtree(njTreeAnno)
-ggNJlabeled=ggNJ+geom_tiplab(aes(color=groupColors[PRD.GROUP], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
+ggNJlabeled=ggNJ+geom_tiplab(aes(color=fixCol[groupColors[PRD.GROUP]], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
                              align=F,  size=1.3)
-ggNJlabeledBig=ggNJ+geom_tiplab(aes(color=groupColors[PRD.GROUP], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
+ggNJlabeledBig=ggNJ+geom_tiplab(aes(color=fixCol[groupColors[PRD.GROUP]], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
                                 align=F,  size=1.5)
-ggNJlabeledAligned=ggNJ + geom_tiplab(aes(color=groupColors[PRD.GROUP], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
+ggNJlabeledAligned=ggNJ + geom_tiplab(aes(color=fixCol[groupColors[PRD.GROUP]], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
                                       align=T, linesize=0.1, size=1.5)
+ggNJlabeledAlignedNL=ggNJ + geom_tiplab(aes(color=fixCol[groupColors[PRD.GROUP]], label=CODING_MOTIFS_ICS728.161121.groups.xlsx),
+                                      align=T, linesize=NA, size=1.5)
 #ggNJlabeled
 # ggNJlabeledBig; ggplotly(ggNJ)
 #ggNJlabeledAligned
+
+#### debug colors
+#ggNJ + geom_tiplab(aes(color=fixCol[groupColors[PRD.GROUP]], label=groupColors[PRD.GROUP]))
 
 
 #ggNJ+geom_tiplab(aes(color=PRD.GROUP, label=CODING_MOTIFS_ICS728.161121.groups.xlsx), align=F,  size=1.3)
@@ -180,6 +187,7 @@ ggNJlabeledAligned=ggNJ + geom_tiplab(aes(color=groupColors[PRD.GROUP], label=CO
 ggNJ.Rot = rotate(ggNJ,parentIdx)
 ggNJlabeled.Rot = rotate(ggNJlabeled,parentIdx)
 ggNJlabeledAligned.Rot = rotate(ggNJlabeledAligned,parentIdx)
+ggNJlabeledAlignedNL.Rot = rotate(ggNJlabeledAlignedNL,parentIdx)
 
 # == PDF --- MSA + tree ------------------------------------
 # 8 pages
@@ -202,10 +210,11 @@ for( colMap in colMapList ) {
   # colMap = colMapList[[1]] # debug
   figTitle = paste0("PRD_tree_alignment_final.nex.ggtree.msaplot (gap=",comment(colMap)[["gap"]],"):\n " )
   barplotColorMapLegend(colMap,prefix=figTitle)
-  #print(msaplot(ggNJ,               BStringSet(msa), color = colMap) )
+  #print(msaplot(ggNJ,                 BStringSet(msa), color = colMap) )
   # Warning: Ignoring unknown aesthetics: x, y
-  print(msaplot(ggNJlabeled,        BStringSet(msa), color = colMap, offset=0.08) )
-  print(msaplot(ggNJlabeledAligned, BStringSet(msa), color = colMap, offset=0.09) )
+  print(msaplot(ggNJlabeled,          BStringSet(msa), color = colMap, offset=0.08) )
+  print(msaplot(ggNJlabeledAligned,   BStringSet(msa), color = colMap, offset=0.09) )
+  print(msaplot(ggNJlabeledAlignedNL, BStringSet(msa), color = colMap, offset=0.09) )
 }
 dev.off()
 
@@ -219,6 +228,7 @@ for( colMap in colMapList ) {
   # Warning: Ignoring unknown aesthetics: x, y
   print(msaplot(ggNJlabeled.Rot,        BStringSet(msa[ggNJlabeled.Rot$data$node[1:136]]), color = colMap, offset=0.08) )
   print(msaplot(ggNJlabeledAligned.Rot, BStringSet(msa[ggNJlabeledAligned.Rot$data$node[1:136]]), color = colMap, offset=0.09) )
+  print(msaplot(ggNJlabeledAlignedNL.Rot, BStringSet(msa[ggNJlabeledAlignedNL.Rot$data$node[1:136]]), color = colMap, offset=0.09) )
 }
 dev.off()
 
@@ -230,6 +240,6 @@ multiplot(
   ,msaplot(ggNJlabeledAligned.Rot, BStringSet(msa[ggNJlabeledAligned.Rot$data$node[1:136]]), color = colMap, offset=0.09)
   , ncol=2)
 dev.off()
-#save.image("figure.ggtree.msa.PRD_final.RData")
+save.image("figure.ggtree.msa.PRD_final.RData")
 #load("figure.ggtree.msa.PRD_final.RData")
 
