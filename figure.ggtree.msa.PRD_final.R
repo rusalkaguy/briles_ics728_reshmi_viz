@@ -135,6 +135,18 @@ nodeIdx=which(njTree$tip.label=="049")
 edgeIdx=which(njTree$edge[,2]==nodeIdx)
 parentIdx = njTree$edge[edgeIdx,1]
 #rotate(njTree, parentIdx)
+# visualize edge numbers
+if(1==1) {
+  gge = ggtree(njTree, ladderize=F) + geom_tiplab() + ggtitle("njTree edges")
+  edge=data.frame(njTree$edge, edge_num=1:nrow(njTree$edge))
+  colnames(edge)=c("parent", "node", "edge_num")
+#  gge %<+% edge + geom_label(aes(x=branch, label=edge_num))
+  pdf(paste0(figureDir,"/","PRD_tree_alignment_final.nex.ggtree.edges.pdf"), width=7.5, height=22)
+  gge %<+% edge + geom_label(aes(x=branch, label=edge_num))
+  dev.off()
+}
+rootIdx = 137  # used visualization from tree labeled with edge IDs to get this
+parent23Idx = 202 # swap groups 2 and 3
 
 nj_tip_names= njTree$tip.label
 
@@ -184,10 +196,15 @@ ggNJlabeledAlignedNL=ggNJ + geom_tiplab(aes(color=fixCol[groupColors[PRD.GROUP]]
 #ggNJ+geom_tiplab(aes(color=groupCol[PRD.GROUP], label=CODING_MOTIFS_ICS728.161121.groups.xlsx), align=F,  size=1.3)
 
 # --- swap some branches
-ggNJ.Rot = rotate(ggNJ,parentIdx)
-ggNJlabeled.Rot = rotate(ggNJlabeled,parentIdx)
-ggNJlabeledAligned.Rot = rotate(ggNJlabeledAligned,parentIdx)
-ggNJlabeledAlignedNL.Rot = rotate(ggNJlabeledAlignedNL,parentIdx)
+rotateNodes=function(tree,nodes) {
+    if(isEmpty(nodes)) { return(tree)}
+    else { return(rotateNodes(rotate(tree,nodes[1]),nodes[-1])) }
+}
+
+ggNJ.Rot = rotateNodes(ggNJ,c(parentIdx, rootIdx, parent23Idx))
+ggNJlabeled.Rot = rotateNodes(ggNJlabeled,c(parentIdx, rootIdx,parent23Idx))
+ggNJlabeledAligned.Rot = rotateNodes(ggNJlabeledAligned,c(parentIdx, rootIdx,parent23Idx))
+ggNJlabeledAlignedNL.Rot = rotateNodes(ggNJlabeledAlignedNL,c(parentIdx, rootIdx,parent23Idx))
 
 # == PDF --- MSA + tree ------------------------------------
 # 8 pages
