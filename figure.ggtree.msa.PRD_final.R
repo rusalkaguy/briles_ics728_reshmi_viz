@@ -251,7 +251,7 @@ dev.off()
 
 # compare rotated to original
 colMap = colMapList[[1]] # debug
-pdf(paste0(figureDir,"/","PRD_tree_alignment_final.nex.ggtree.multi-msaplot.pdf"), width=10, height=7.5)
+pdf(paste0(figureDir,"/","PRD_tree_alignment_final.nex.ggtree.pre-post-rotation.pdf"), width=10, height=7.5)
 multiplot(
   msaplot(ggNJlabeledAligned, BStringSet(msa), color = colMap, offset=0.09)
   ,msaplot(ggNJlabeledAligned.Rot, BStringSet(msa[ggNJlabeledAligned.Rot$data$node[1:136]]), color = colMap, offset=0.09)
